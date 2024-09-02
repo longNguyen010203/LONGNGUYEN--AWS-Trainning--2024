@@ -1,0 +1,9 @@
+# AWSTemplateFormatVersion: "2010-09-09"
+# Description: Learning Amazon CloudFormation
+Resources:
+  MyInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      AvailabilityZone: ap-southeast-1a
+      ImageId: ami-0742b4e673072066f
+      InstanceType: t2.micro
