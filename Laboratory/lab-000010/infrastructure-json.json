@@ -1,0 +1,22 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Template for Lab-000010 in FCJ Bootcamp 2024",
+    "Resources": {
+        "ASGVpc": {
+            "Type": "AWS::EC2::VPC",
+            "Properties": {
+                "CidrBlock": "10.10.0.0/16",
+                "EnableDnsSupport": false,
+                "EnableDnsHostnames": false,
+                "Tags": {
+                    "Key": "Name",
+                    "Value": "ASG"
+                }
+            }
+        },
+        "ASGPublicSubnet1": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {}
+        }
+    }
+}
