@@ -1,4 +1,3 @@
-
 Resources:
   MyInstance:
     Type: AWS::EC2::Instance
