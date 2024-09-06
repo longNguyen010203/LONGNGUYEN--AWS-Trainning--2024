@@ -1,0 +1,49 @@
+# Description
+# ConstraintDescription
+# Min/MaxLength
+# Min/MaxValue
+# String
+# Number
+# CommaDelimitedList (List)
+# List<Number> (List)
+# List<AWS-Specific Parameter> (List)
+# SSM Parameter
+# Default
+# AllowedValues (Array)
+# AllowedPattern (Regex)
+# NoEcho (Boolean)
+
+Parameters:
+  SecurityGroupDescription:
+    Description: Security Group Description (Simple parameter)
+    Type: String # String
+
+  InstanceType:
+    Description: WebServer EC2 instance type (has default, AllowedValues)
+    Type: String # String
+    Default: t2.micro
+    AllowedValues:
+      - t1.micro
+      - t2.nano
+      - t2.micro
+      - t2.small
+    ConstraintDescription: must be a valid EC2 instance type.
+
+  SecurityGroupPort:
+    Description: Simple Description of a Number Parameter, with MinValue and MaxValue
+    Type: Number # Number
+    MinValue: 1150
+    MaxValue: 65535
+
+  MyVPC:
+    Description: VPC to operate in
+    Type: AWS::EC2::VPC::Id
+
+  MySubnetIDs:
+    Description: Subnet IDs that is a List of Subnet Id
+    Type: "List<AWS::EC2::Subnet::Id>" # List<AWS-Specific Parameter>
+
+  DbSubnetIpBlocks:
+    Description: Comma-delimited list of three CIDR blocks
+    Type: CommaDelimitedList # List
+    Default: 10.0.1.0/24, 10.0.1.0/24, 10.0.1.0/24
