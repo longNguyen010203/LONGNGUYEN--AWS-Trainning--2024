@@ -3,5 +3,4 @@ Resources:
   MyS3Bucket:
     Type: AWS::S3::Bucket
     Properties:
-      AccessControl: PublicRead
-      BucketName: "insert-some-random-string-here-12345233"
+      BucketName: s3-demo-with-cloudformation

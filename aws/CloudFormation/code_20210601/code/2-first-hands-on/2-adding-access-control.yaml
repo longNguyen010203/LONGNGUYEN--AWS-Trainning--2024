@@ -3,4 +3,4 @@ Resources:
   MyS3Bucket:
     Type: AWS::S3::Bucket
     Properties:
-      AccessControl: PublicRead
+      AccessControl: PublicRead # ==> Hiện tại không được khuyến nghị sử dụng
