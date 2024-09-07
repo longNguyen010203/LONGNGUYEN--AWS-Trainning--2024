@@ -1,3 +1,4 @@
+
 Parameters:
   InstanceType:
     Description: WebServer EC2 instance type

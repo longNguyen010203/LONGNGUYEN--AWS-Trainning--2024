@@ -1,0 +1,36 @@
+ParameterType:
+  String: string
+  Number: int
+  CommaDelimitedList: list
+  List<Number>: list[int]
+  AWS-Specific Parameter: Tham số cụ thể  # VD: KeyName, VPC ID, Subnet ID,...
+  List<AWS-Specific Parameter>: Danh sách tham số cụ thể
+
+  SSM Parameter: # Lấy tham số từ kho tham số 
+    - AWS::SSM::Parameter::Name
+    - AWS::SSM::Parameter::Value<String>
+    - AWS::SSM::Parameter::Value<List<String>>
+    - AWS::SSM::Parameter::Value<CommaDelimitedList>
+    - AWS::SSM::Parameter::Value<AWS-Specific Parameter>
+    - AWS::SSM::Parameter::Value<List<AWS-Specific Parameter>>
+  
+  Description: string
+  ConstraintDescription: string
+  MinLength: 123 # Ràng buộc về độ dài
+  MaxLength: 234 # Ràng buộc về độ dài
+  MinValue: 3456 # Ràng buộc về giá trị
+  MaxValue: 9856 # Ràng buộc về giá trị
+  Default: Giá trị mặc định
+  AllowedValues: list # Danh sách các giá trị có thể chọn
+    # - t2.2xlarge
+    # - t2.medium
+    # - t2.xlarge
+  AllowedPattern: Regex
+  NoEcho: boolean
+
+  Name: !Ref Name # ==> Reference a Parameter
+  ## ==> Ref không thể dử dụng trong 
+  ## 1. TemplateFormatVersion
+  ## 2. Description
+  ## 3. Transform
+  ## 4. Mappings
