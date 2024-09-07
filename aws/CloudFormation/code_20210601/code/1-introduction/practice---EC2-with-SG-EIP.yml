@@ -1,10 +1,27 @@
+
+Parameters:
+  InstanceType:
+    Description: demo EC2 instance type (has default, AllowedValues)
+    Type: String
+    Default: t2.micro
+    AllowedValues:
+      - t1.micro
+      - t2.nano
+      - t2.micro
+      - t2.small
+    ConstraintDescription: must be a valid EC2 instance type.
+
+  ImageId:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
+
 Resources:
   MyInstance:
     Type: AWS::EC2::Instance
     Properties:
       AvailabilityZone: ap-southeast-1a
-      ImageId: ami-04a5ce820a419d6da
-      InstanceType: t2.micro
+      ImageId: !Ref ImageId
+      InstanceType: !Ref InstanceType
       SecurityGroups:
         - !Ref SSHSecurityGroup
         - !Ref ServerSecurityGroup
