@@ -1,6 +1,11 @@
 
+Parameters:
+  BucketName:
+    Description: create a name for s3 bucket
+    Type: String
+
 Resources:
   MyS3Bucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: s3-demo-with-cloudformation
+      BucketName: !Ref BucketName

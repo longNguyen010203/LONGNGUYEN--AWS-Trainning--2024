@@ -1,0 +1,23 @@
+
+AWSTemplateFormatVersion: '2010-09-09'
+Description: component of template in CloudFormation description
+
+Resources: # => Tài nguyên AWS của bạn được khai báo trong Template (BẮT BUỘC)
+
+Transform: # => Chỉ định 1 hoặc nhiều macro được sử dụng để xử lý Template
+
+Metadata: 
+
+Parameters: # => Các đầu vào động cho Template của bạn
+
+Mappings: # => Các biến tĩnh cho mẫu của bạn
+
+Outputs: # => Tham chiếu đến những gì đã được tạo ra
+
+Conditions: # => Danh sách các điều kiện để thực hiện việc
+
+Rules:
+
+Template Helper:
+  Reference (tài liệu tham khảo)
+  Function
