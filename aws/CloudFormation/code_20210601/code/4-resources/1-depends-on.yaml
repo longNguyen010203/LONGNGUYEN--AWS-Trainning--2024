@@ -6,6 +6,8 @@ Parameters:
 Resources:
   MyS3Bucket:
     Type: AWS::S3::Bucket
+    Properties:
+      BucketName: depends-on-with-long
 
   # the EC2 instance will be created after the S3 bucket
   MyInstance:

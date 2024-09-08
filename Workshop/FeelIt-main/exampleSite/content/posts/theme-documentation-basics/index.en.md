@@ -26,8 +26,19 @@ Discover what the Hugo - **FeelIt** theme is all about and the core-concepts beh
 
 <!--more-->
 
+## 🔦 Overview
+<img src="./Data-Engineering-AWS---Workshop-Page-2.drawio.svg" style="width: 1000px; height: auto;" alt="AWS Workshop Image">
+
 ## 📦 Technologies
-`Spark` `Airflow` `Terraform` `S3` `EC2` `IAM` `VPC` `EMR` `Redshift`
+ - `S3` 
+ - `EMR` 
+ - `EC2` 
+ - `Athena`
+ - `QuickSight`
+ - `CloudFormation`
+ - `Spark` 
+ - `VPC` 
+ - `IAM`
 
 ## 1 Requirements
 
