@@ -24,6 +24,11 @@ Parameters:
     Type: CommaDelimitedList
     Default: "10.10.1.0/24, 10.10.2.0/24, 10.10.3.0/24, 10.10.4.0/24"
 
+  KeyName:
+    Description: Name of an existing EC2 KeyPair to enable SSH access to the instances. Linked to AWS Parameter
+    Type: AWS::EC2::KeyPair::KeyName
+    ConstraintDescription: must be the name of an existing EC2 KeyPair.
+
 Resources:
   # Amazon VPC
   MyVPC:
@@ -96,8 +101,8 @@ Resources:
       VpcId: !Ref MyVPC
       InternetGatewayId: !Ref MyInternetGateway
 
-  # Route Table
-  MyRouteTable:
+  # Public Route Table
+  MyPublicRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
       VpcId: !Ref MyVPC
@@ -105,26 +110,29 @@ Resources:
         - Key: Name
           Value: Route Table Public
 
-  MyRoute:
+  # Route for Public Route Table
+  MyPublicRoute:
     Type: AWS::EC2::Route
     Properties:
-      RouteTableId: !Ref MyRouteTable
+      RouteTableId: !Ref MyPublicRouteTable
       DestinationCidrBlock: 0.0.0.0/0
       GatewayId: !Ref MyInternetGateway
 
-  MyRouteTableSubnetAssociate-1:
+  # Public Route Table Subnet Associate
+  MyPublicRouteTableSubnetAssociate-1:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      RouteTableId: !Ref MyRouteTable
+      RouteTableId: !Ref MyPublicRouteTable
       SubnetId: !Ref MyPublicSubnet-1
 
-  MyRouteTableSubnetAssociate-2:
+  MyPublicRouteTableSubnetAssociate-2:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      RouteTableId: !Ref MyRouteTable
+      RouteTableId: !Ref MyPublicRouteTable
       SubnetId: !Ref MyPublicSubnet-2
 
-  MySecurityGroup:
+  # Public Security Group
+  MyPublicSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupName: Public Subnet - SG
@@ -135,7 +143,66 @@ Resources:
           FromPort: 22
           IpProtocol: tcp
           ToPort: 22
+        - CidrIp: 0.0.0.0/0
+          FromPort: -1
+          IpProtocol: icmp
+          ToPort: -1
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: -1
       Tags:
         - Key: Name
-          Value: Worker-1 Security Group
-        
+          Value: Public Subnet - SG
+
+  # Private Security Group
+  MyPrivateSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: Private Subnet - SG
+      GroupDescription: Allow SSH and Ping for servers in the private subnet
+      VpcId: !Ref MyVPC
+      SecurityGroupIngress:
+        - SourceSecurityGroupId: !Ref MyPublicSecurityGroup
+          FromPort: 22
+          IpProtocol: tcp
+          ToPort: 22
+        - CidrIp: 0.0.0.0/0
+          FromPort: -1
+          IpProtocol: icmp
+          ToPort: -1
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: -1
+      Tags:
+        - Key: Name
+          Value: Private Subnet - SG
+
+  # Public EC2 Instance
+  MyPublicEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      AvailabilityZone: ap-southeast-1a
+      ImageId: !Ref ImageId
+      InstanceType: !Ref InstanceType
+      SubnetId: !Ref MyPublicSubnet-1
+      KeyName: !Ref KeyName
+      SecurityGroupIds:
+        - !Ref MyPublicSecurityGroup
+      Tags:
+        - Key: Name
+          Value: EC2 Public
+
+  # Private EC2 Instance
+  MyPrivateEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      AvailabilityZone: ap-southeast-1b
+      ImageId: !Ref ImageId
+      InstanceType: !Ref InstanceType
+      SubnetId: !Ref MyPrivateSubnet-2
+      KeyName: !Ref KeyName
+      SecurityGroupIds:
+        - !Ref MyPrivateSecurityGroup
+      Tags:
+        - Key: Name
+          Value: EC2 Private
