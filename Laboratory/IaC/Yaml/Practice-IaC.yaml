@@ -1,0 +1,230 @@
+
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Setup Infrastructure for Lab-0003 on Amazon Web Services (AWS) using CloudFormation
+
+Parameters:
+  ImageId:
+    Description: Create Image ID for EC2 Instance
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
+
+  InstanceType:
+    Description: EC2 Instance Type
+    Type: String
+    Default: t2.micro
+    AllowedValues:
+      - t1.micro
+      - t2.nano
+      - t2.micro
+      - t2.small
+    ConstraintDescription: must be a valid EC2 instance type
+
+  SubnetCidrBlock:
+    Description: CidrBlock for Subnet
+    Type: CommaDelimitedList
+    Default: "10.10.1.0/24, 10.10.2.0/24, 10.10.3.0/24, 10.10.4.0/24"
+
+Resources:
+  # Amazon Virtual Private Cloud - VPC
+  MyVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.10.0.0/16
+      EnableDnsHostnames: false
+      EnableDnsSupport: false
+      Tags:
+        - Key: Name
+          Value: MyVPC
+
+  # Public Subnet 1
+  MyPublicSubnet-1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref MyVPC
+      AvailabilityZone: ap-southeast-1a
+      CidrBlock: !Select [0, !Ref SubnetCidrBlock]
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: Public Subnet 1
+
+  # Public Subnet 2
+  MyPublicSubnet-2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref MyVPC
+      AvailabilityZone: ap-southeast-1b
+      CidrBlock: !Select [1, !Ref SubnetCidrBlock]
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: Public Subnet 2
+        
+  # Private Subnet 1
+  MyPrivateSubnet-1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref MyVPC
+      AvailabilityZone: ap-southeast-1a
+      CidrBlock: !Select [2, !Ref SubnetCidrBlock]
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: Private Subnet 1
+
+  # Private Subnet 2
+  MyPrivateSubnet-2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref MyVPC
+      AvailabilityZone: ap-southeast-1b
+      CidrBlock: !Select [3, !Ref SubnetCidrBlock]
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: Private Subnet 2
+
+  # Route Table
+  MyRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref MyVPC
+      Tags:
+        - Key: Name
+          Value: Route Table
+
+  # Internet Gateway
+  MyInternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: Internet Gateway
+
+  # NAT Gateway
+  MyNATGateway:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      SubnetId: !Ref MyPublicSubnet-1
+      Tags:
+        - Key: Name
+          Value: NAT Gateway
+
+  # Security Group
+  MasterSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref MyVPC
+      GroupDescription: Create Security Group for EMR (Master Node)
+      GroupName: MasterSecurityGroup
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 192.168.1.1/32
+      Tags:
+        - Key: Name
+          Value: Master Security Group
+
+  MyEMRCluster:
+    Type: AWS::EMR::Cluster
+    Properties:
+      Name: long-sale-ecommerce
+      ServiceRole: 
+      Instances:
+        
+      JobFlowRole: 
+      SecurityConfiguration: !Ref MasterSecurityGroup
+
+  WorkerSecurityGroup-1:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref MyVPC
+      GroupDescription: Create Security Group for EC2 (Worker Node 1)
+      GroupName: WorkerSecurityGroup-1
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          FromPort: 22
+          IpProtocol: tcp
+          ToPort: 22
+      Tags:
+        - Key: Name
+          Value: Worker-1 Security Group
+
+  WorkerSecurityGroup-2:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref MyVPC
+      GroupDescription: Create Security Group for EC2 (Worker Node 2)
+      GroupName: WorkerSecurityGroup-2
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          FromPort: 22
+          IpProtocol: tcp
+          ToPort: 22
+      Tags:
+        - Key: Name
+          Value: Worker-2 Security Group
+  
+  WorkerSecurityGroup-3:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref MyVPC
+      GroupDescription: Create Security Group for EC2 (Worker Node 3)
+      GroupName: WorkerSecurityGroup-3
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          FromPort: 22
+          IpProtocol: tcp
+          ToPort: 22
+      Tags:
+        - Key: Name
+          Value: Worker-3 Security Group
+      
+  WorkerNodeInstance-1:
+    Type: AWS::EC2::Instance
+    Properties:
+      AvailabilityZone: ap-southeast-1a
+      ImageId: !Ref ImageId
+      InstanceType: !Ref InstanceType
+      SecurityGroups:
+        - !Ref WorkerSecurityGroup-1
+      Tags:
+        - Key: Name
+          Value: Worker-1 Node MyInstance
+
+  WorkerNodeInstance-2:
+    Type: AWS::EC2::Instance
+    Properties:
+      AvailabilityZone: ap-southeast-1b
+      ImageId: !Ref ImageId
+      InstanceType: !Ref InstanceType
+      SecurityGroups:
+        - !Ref WorkerSecurityGroup-2
+      Tags:
+        - Key: Name
+          Value: Worker-2 Node MyInstance
+
+  WorkerNodeInstance-3:
+    Type: AWS::EC2::Instance
+    Properties:
+      AvailabilityZone: ap-southeast-1c
+      ImageId: !Ref ImageId
+      InstanceType: !Ref InstanceType
+      SecurityGroups:
+        - !Ref WorkerSecurityGroup-3
+      Tags:
+        - Key: Name
+          Value: Worker-3 Node MyInstance
+
+  MyEIP:
+    Type: AWS::EC2::EIP
+    Properties:
+      InstanceId: !Ref MyInstance
+      Tags:
+        - Key: Name
+          Value: Elastic IP
