@@ -1,0 +1,141 @@
+
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Setup Infrastructure for Lab-0003 on Amazon Web Services (AWS) using CloudFormation
+
+Parameters:
+  ImageId:
+    Description: Create Image ID for EC2 Instance
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
+
+  InstanceType:
+    Description: EC2 Instance Type
+    Type: String
+    Default: t2.micro
+    AllowedValues:
+      - t1.micro
+      - t2.nano
+      - t2.micro
+      - t2.small
+    ConstraintDescription: must be a valid EC2 instance type
+
+  SubnetCidrBlock:
+    Description: CidrBlock for Subnet
+    Type: CommaDelimitedList
+    Default: "10.10.1.0/24, 10.10.2.0/24, 10.10.3.0/24, 10.10.4.0/24"
+
+Resources:
+  # Amazon VPC
+  MyVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.10.0.0/16
+      EnableDnsSupport: false
+      EnableDnsHostnames: false
+      InstanceTenancy: default
+      Tags:
+        - Key: Name
+          Value: MyVPC
+
+  # Public Subnet
+  MyPublicSubnet-1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref MyVPC
+      AvailabilityZone: ap-southeast-1a
+      CidrBlock: !Select [0, !Ref SubnetCidrBlock]
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: Public Subnet 1
+
+  MyPublicSubnet-2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref MyVPC
+      AvailabilityZone: ap-southeast-1b
+      CidrBlock: !Select [1, !Ref SubnetCidrBlock]
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: Public Subnet 2
+
+  # Private Subnet
+  MyPrivateSubnet-1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref MyVPC
+      AvailabilityZone: ap-southeast-1a
+      CidrBlock: !Select [2, !Ref SubnetCidrBlock]
+      Tags:
+        - Key: Name
+          Value: Private Subnet 1
+
+  MyPrivateSubnet-2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref MyVPC
+      AvailabilityZone: ap-southeast-1b
+      CidrBlock: !Select [3, !Ref SubnetCidrBlock]
+      Tags:
+        - Key: Name
+          Value: Private Subnet 2
+
+  # Internet Gateway
+  MyInternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: Internet Gateway
+
+  # Internet Gateway Attachment
+  MyVPCGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref MyVPC
+      InternetGatewayId: !Ref MyInternetGateway
+
+  # Route Table
+  MyRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref MyVPC
+      Tags:
+        - Key: Name
+          Value: Route Table Public
+
+  MyRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref MyRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref MyInternetGateway
+
+  MyRouteTableSubnetAssociate-1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref MyRouteTable
+      SubnetId: !Ref MyPublicSubnet-1
+
+  MyRouteTableSubnetAssociate-2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref MyRouteTable
+      SubnetId: !Ref MyPublicSubnet-2
+
+  MySecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: Public Subnet - SG
+      GroupDescription: Allow SSH and Ping for servers in the public subnet
+      VpcId: !Ref MyVPC
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          FromPort: 22
+          IpProtocol: tcp
+          ToPort: 22
+      Tags:
+        - Key: Name
+          Value: Worker-1 Security Group
+        
