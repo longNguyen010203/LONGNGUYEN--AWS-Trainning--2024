@@ -35,7 +35,7 @@ Resources:
     Type: AWS::EC2::VPC
     Properties:
       CidrBlock: 10.10.0.0/16
-      EnableDnsSupport: false
+      EnableDnsSupport: true
       EnableDnsHostnames: false
       InstanceTenancy: default
       Tags:
@@ -43,7 +43,7 @@ Resources:
           Value: MyVPC
 
   # Public Subnet
-  MyPublicSubnet-1:
+  MyPublicSubnet1:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref MyVPC
@@ -54,7 +54,7 @@ Resources:
         - Key: Name
           Value: Public Subnet 1
 
-  MyPublicSubnet-2:
+  MyPublicSubnet2:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref MyVPC
@@ -66,7 +66,7 @@ Resources:
           Value: Public Subnet 2
 
   # Private Subnet
-  MyPrivateSubnet-1:
+  MyPrivateSubnet1:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref MyVPC
@@ -76,7 +76,7 @@ Resources:
         - Key: Name
           Value: Private Subnet 1
 
-  MyPrivateSubnet-2:
+  MyPrivateSubnet2:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref MyVPC
@@ -119,17 +119,17 @@ Resources:
       GatewayId: !Ref MyInternetGateway
 
   # Public Route Table Subnet Associate
-  MyPublicRouteTableSubnetAssociate-1:
+  MyPublicRouteTableSubnetAssociate1:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       RouteTableId: !Ref MyPublicRouteTable
-      SubnetId: !Ref MyPublicSubnet-1
+      SubnetId: !Ref MyPublicSubnet1
 
-  MyPublicRouteTableSubnetAssociate-2:
+  MyPublicRouteTableSubnetAssociate2:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       RouteTableId: !Ref MyPublicRouteTable
-      SubnetId: !Ref MyPublicSubnet-2
+      SubnetId: !Ref MyPublicSubnet2
 
   # Public Security Group
   MyPublicSecurityGroup:
@@ -184,7 +184,7 @@ Resources:
       AvailabilityZone: ap-southeast-1a
       ImageId: !Ref ImageId
       InstanceType: !Ref InstanceType
-      SubnetId: !Ref MyPublicSubnet-1
+      SubnetId: !Ref MyPublicSubnet1
       KeyName: !Ref KeyName
       SecurityGroupIds:
         - !Ref MyPublicSecurityGroup
@@ -199,10 +199,59 @@ Resources:
       AvailabilityZone: ap-southeast-1b
       ImageId: !Ref ImageId
       InstanceType: !Ref InstanceType
-      SubnetId: !Ref MyPrivateSubnet-2
+      SubnetId: !Ref MyPrivateSubnet2
       KeyName: !Ref KeyName
       SecurityGroupIds:
         - !Ref MyPrivateSecurityGroup
       Tags:
         - Key: Name
           Value: EC2 Private
+
+  MyEIP:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+      Tags:
+        - Key: Name
+          Value: EIP
+
+  # NAT Gateway
+  MyNATGateway:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      SubnetId: !Ref MyPublicSubnet2
+      ConnectivityType: public
+      AllocationId: !GetAtt MyEIP.AllocationId
+      Tags:
+        - Key: Name
+          Value: NAT Gateway
+
+  # Private Route Table
+  MyPrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref MyVPC
+      Tags:
+        - Key: Name
+          Value: Route Table Private
+
+  # Route for Private Route Table
+  MyPrivateRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref MyPrivateRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref MyNATGateway
+
+  # Private Route Table Subnet Associate
+  MyPrivateRouteTableSubnetAssociate1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref MyPrivateRouteTable
+      SubnetId: !Ref MyPrivateSubnet1
+
+  MyPrivateRouteTableSubnetAssociate2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref MyPrivateRouteTable
+      SubnetId: !Ref MyPrivateSubnet2
